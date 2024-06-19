@@ -8,5 +8,6 @@ export type rawStatusPayload = {
 };
 export type StatusPayload = rawStatusPayload & {
   timestamp: Date;
+  group: string;
   id: string;
 };

@@ -1,32 +1,44 @@
 import { connect, Msg, NatsConnection, NatsError } from "nats.ws";
-import { useState, useEffect, useReducer, useCallback } from "react";
+import { useState, useEffect, useReducer, useCallback, useRef } from "react";
 import { StatusPayload, rawStatusPayload } from "../types/StatusPayload";
 
-export const natsClientPromise = connect({ servers: "ws://localhost:8443" });
-
-export function useNats() {
+export function useNats(connectionString: string) {
   const [nats, setNats] = useState<NatsConnection | null>(null);
 
   useEffect(() => {
     if (nats) return;
 
-    natsClientPromise
+    connect({ servers: connectionString })
       .then((nc) => setNats(nc))
       .catch((err) => console.error("connect failed", err));
-  }, [nats]);
+  }, [nats, connectionString]);
 
-  return nats;
+  function sendCommand(subj: string, payload: string) {
+    if (!nats) {
+      console.error("sendCommand, no nats connection");
+      return;
+    }
+    console.log("sendCommand", subj, payload);
+    nats.publish(subj, payload);
+  }
+
+  return { nats, sendCommand };
 }
 
 export function useNatsSubscription(
+  connectionString: string,
   subj: string,
   onMessage: (msg: Msg) => void,
   onError: (err: NatsError) => void
 ) {
-  const nc = useNats();
+  const { nats: nc, sendCommand } = useNats(connectionString);
+
+  const connected = useRef(false);
 
   useEffect(() => {
     if (!nc) return;
+    console.log("INFO", nc.info);
+    connected.current = !!nc.info;
 
     const sub = nc.subscribe(subj, {
       callback: function (err: NatsError | null, msg: Msg) {
@@ -40,6 +52,7 @@ export function useNatsSubscription(
 
     return () => sub.unsubscribe();
   }, [nc, onError, onMessage, subj]);
+  return { sendCommand, connected: connected.current };
 }
 
 type StateDefinition = {
@@ -83,6 +96,7 @@ function stateReducer(state: StateDefinition, action: Actions) {
           payload = {
             ...(action.payload.json() as rawStatusPayload),
             id,
+            group,
             timestamp: new Date(),
           };
           const ira = iras.get(id);
@@ -107,17 +121,18 @@ function stateReducer(state: StateDefinition, action: Actions) {
   }
 }
 
-export function useIras(subj: string) {
+export function useIras(connectionString: string, subj: string) {
   const [state, dispatch] = useReducer(stateReducer, {
     iras: new Map(),
     error: null,
   } satisfies StateDefinition);
 
-  useNatsSubscription(
+  const { sendCommand, connected } = useNatsSubscription(
+    connectionString,
     subj,
     useCallback((msg) => dispatch({ type: "NEW_MESSAGE", payload: msg }), []),
     useCallback((err) => dispatch({ type: "NATS_ERROR", error: err }), [])
   );
 
-  return state;
+  return { ...state, sendCommand, connected };
 }
