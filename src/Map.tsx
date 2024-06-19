@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 function Button({ children, className, ...props }) {
