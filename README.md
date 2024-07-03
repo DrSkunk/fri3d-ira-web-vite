@@ -1,30 +1,45 @@
-# React + TypeScript + Vite
+# Fri3d IRA web interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## How to run the web interface
 
-Currently, two official plugins are available:
+### With Node.js
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Install the dependencies:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+npm install
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+2. Run the web interface:
+
+```bash
+npm run build
+npm run preview
+```
+
+### With Docker
+
+There is a Dockerfile supplied. You can start this easily with the `docker-compose.yml` file in the `docker` directory.
+
+1. Build the Docker image:
+
+```bash
+cd docker
+docker compose build
+```
+
+2. Run the Docker container:
+
+```bash
+docker compose up
+```
+
+## Development
+
+The project is setup with Vite, React and Typescript. It uses (Tailwind CSS)[https://tailwindcss.com/] for styling and uses [Nats.ws](https://github.com/nats-io/nats.ws) to communicate with the NATS server.
+
+Run a dev server with
+
+```bash
+npm run dev
+```
